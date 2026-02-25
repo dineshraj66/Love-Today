@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Love Today</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e8526a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Love Today">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #e8526a;
+    --rose-dark: #c73a52;
+    --rose-light: #f9d5db;
+    --blush: #fdf0f2;
+    --cream: #fefaf8;
+    --warm-brown: #6b4c4c;
+    --text: #2d1f1f;
+    --text-soft: #8c6b6b;
+    --white: #ffffff;
+    --card: rgba(255,255,255,0.92);
+    --shadow: 0 4px 24px rgba(232,82,106,0.1);
+    --shadow-lg: 0 8px 40px rgba(232,82,106,0.18);
+    --radius: 20px;
+    --tab-h: 70px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(232,82,106,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(254,250,248,0.92);
+    backdrop-filter: blur(20px);
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid rgba(232,82,106,0.1);
+  }
+
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .app-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--rose);
+    font-style: italic;
+    letter-spacing: -0.5px;
+  }
+
+  .header-btn {
+    background: var(--rose-light);
+    border: none; border-radius: 12px;
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--rose-dark);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .header-btn:hover { background: var(--rose); color: white; }
+
+  /* TABS */
+  .tab-bar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(232,82,106,0.12);
+    display: flex; height: var(--tab-h);
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tab-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px; cursor: pointer;
+    transition: all 0.2s;
+    font-size: 10px;
+    color: #c4a0a5;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    position: relative;
+    border: none; background: none;
+  }
+
+  .tab-item .tab-icon { font-size: 20px; transition: transform 0.2s; }
+
+  .tab-item.active { color: var(--rose); }
+  .tab-item.active .tab-icon { transform: scale(1.15); }
+  .tab-item.active::after {
+    content: '';
+    position: absolute; top: 0; left: 25%; right: 25%;
+    height: 3px; background: var(--rose);
+    border-radius: 0 0 3px 3px;
+  }
+
+  /* CONTENT */
+  .content {
+    padding: 16px 16px calc(var(--tab-h) + 20px);
+    min-height: calc(100vh - 60px);
+    position: relative; z-index: 1;
+  }
+
+  .screen { display: none; animation: fadeUp 0.3s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(232,82,106,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--rose);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .card-category {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--rose-light);
+    color: var(--rose-dark);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .card-desc {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+
+  .card-comment {
+    font-size: 13px;
+    color: var(--text-soft);
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+
+  .card-meta {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px;
+    color: #b09898;
+  }
+
+  .card-actions {
+    position: absolute; top: 12px; right: 12px;
+    display: flex; gap: 4px;
+  }
+
+  .icon-btn {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: rgba(232,82,106,0.06);
+    border-radius: 8px; cursor: pointer; font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .icon-btn:hover { background: var(--rose-light); }
+
+  /* DATE DIVIDERS */
+  .date-divider {
+    display: flex; align-items: center; gap: 10px;
+    margin: 20px 0 12px;
+  }
+
+  .date-divider span {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    color: var(--rose);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .date-divider::before, .date-divider::after {
+    content: '';
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(232,82,106,0.2), transparent);
+  }
+
+  .date-divider::after { background: linear-gradient(90deg, transparent, rgba(232,82,106,0.2)); }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: calc(var(--tab-h) + 16px);
+    right: 20px;
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+    border: none; border-radius: 18px;
+    color: white; font-size: 26px;
+    cursor: pointer; box-shadow: 0 4px 20px rgba(232,82,106,0.4);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    z-index: 99;
+    font-weight: 300;
+  }
+
+  .fab:active { transform: scale(0.92); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed;
+    inset: 0; background: rgba(45,31,31,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 200; align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; animation: overlayIn 0.2s ease; }
+
+  @keyframes overlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal {
+    background: white;
+    width: 100%; max-width: 480px;
+    border-radius: 28px 28px 0 0;
+    padding: 24px 20px 40px;
+    max-height: 92vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: #e8d0d4;
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--text);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-soft);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-textarea, .form-select {
+    width: 100%;
+    border: 1.5px solid #f0dde0;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--blush);
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .form-input:focus, .form-textarea:focus, .form-select:focus {
+    border-color: var(--rose);
+    background: white;
+  }
+
+  .form-textarea { min-height: 80px; resize: none; }
+
+  /* CATEGORY CHIPS */
+  .cat-chips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+
+  .cat-chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #f0dde0;
+    background: var(--blush);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .cat-chip.selected {
+    background: var(--rose);
+    border-color: var(--rose);
+    color: white;
+  }
+
+  /* SUBMIT BTN */
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(232,82,106,0.3);
+  }
+
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-secondary {
+    width: 100%;
+    background: var(--blush);
+    color: var(--rose-dark);
+    border: 1.5px solid var(--rose-light);
+    border-radius: 16px;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+
+  /* STATS */
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-bottom: 20px;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 18px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(232,82,106,0.08);
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: var(--rose);
+    font-weight: 600;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+  }
+
+  .chart-bar-wrap { margin-bottom: 10px; }
+
+  .chart-bar-label {
+    display: flex; justify-content: space-between;
+    font-size: 13px; margin-bottom: 5px;
+    color: var(--text);
+  }
+
+  .chart-bar-track {
+    background: var(--rose-light);
+    border-radius: 8px;
+    height: 10px;
+    overflow: hidden;
+  }
+
+  .chart-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rose), var(--rose-dark));
+    border-radius: 8px;
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* SECTION HEADING */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    margin: 20px 0 12px;
+    font-style: italic;
+  }
+
+  /* HER LIKES CARD */
+  .likes-card {
+    background: white;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(232,82,106,0.08);
+  }
+
+  .likes-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--rose-light), #f9e0e5);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .likes-info { flex: 1; min-width: 0; }
+  .likes-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .likes-loc { font-size: 12px; color: var(--text-soft); }
+
+  /* FUTURE TAG */
+  .future-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #7b6cf0, #5f4ee0);
+    color: white;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .card.future::before { background: #7b6cf0; }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-soft);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-style: italic;
+    margin-bottom: 6px;
+    color: var(--rose);
+  }
+
+  .empty p { font-size: 14px; }
+
+  /* MANAGE CATEGORIES */
+  .cat-manage-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--blush);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+  }
+
+  .cat-manage-name { font-size: 14px; font-weight: 500; }
+
+  .delete-btn {
+    background: none; border: none; cursor: pointer;
+    color: #d45; font-size: 16px; padding: 2px 6px;
+    border-radius: 6px; transition: background 0.15s;
+  }
+
+  .delete-btn:hover { background: #fde; }
+
+  .add-cat-row {
+    display: flex; gap: 8px; margin-top: 8px;
+  }
+
+  .add-cat-input {
+    flex: 1;
+    border: 1.5px solid #f0dde0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none; background: var(--blush);
+  }
+
+  .add-cat-input:focus { border-color: var(--rose); background: white; }
+
+  .add-cat-btn {
+    background: var(--rose); color: white;
+    border: none; border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 18px; cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  /* Month tabs */
+  .month-tabs {
+    display: flex; gap: 8px;
+    overflow-x: auto; padding-bottom: 4px;
+    margin-bottom: 16px;
+    scrollbar-width: none;
+  }
+
+  .month-tabs::-webkit-scrollbar { display: none; }
+
+  .month-tab {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--rose-light);
+    background: white;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .month-tab.active {
+    background: var(--rose);
+    border-color: var(--rose);
+    color: white;
+  }
+
+  .cat-emoji {
+    font-size: 14px;
+  }
+
+  input[type="datetime-local"] {
+    color-scheme: light;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: calc(var(--tab-h) + 80px);
+    left: 50%; transform: translateX(-50%);
+    background: #2d1f1f;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 300;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:32px 24px; background:var(--cream);">
+
+  <!-- Background hearts decoration -->
+  <div style="position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;z-index:0;">
+    <div style="position:absolute;top:8%;left:10%;font-size:40px;opacity:0.06;transform:rotate(-15deg);">💕</div>
+    <div style="position:absolute;top:20%;right:8%;font-size:28px;opacity:0.05;transform:rotate(20deg);">❤️</div>
+    <div style="position:absolute;bottom:25%;left:6%;font-size:36px;opacity:0.05;transform:rotate(-10deg);">💝</div>
+    <div style="position:absolute;bottom:15%;right:12%;font-size:32px;opacity:0.06;transform:rotate(15deg);">💕</div>
+  </div>
+
+  <div style="position:relative;z-index:1;width:100%;max-width:360px;">
+    <!-- Logo -->
+    <div style="text-align:center; margin-bottom:44px;">
+      <div style="width:80px;height:80px;background:linear-gradient(135deg,#e8526a,#c73a52);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(232,82,106,0.35);">💕</div>
+      <div style="font-family:'Playfair Display',serif; font-size:34px; color:var(--rose); font-style:italic; letter-spacing:-0.5px;">Love Today</div>
+      <div style="font-size:14px; color:var(--text-soft); margin-top:6px; font-weight:400;">Your private love story</div>
+    </div>
+
+    <!-- Card -->
+    <div style="background:white; border-radius:28px; padding:32px 24px; box-shadow:0 8px 40px rgba(232,82,106,0.15); border:1px solid rgba(232,82,106,0.08);">
+
+      <!-- Google Sign-In Button -->
+      <button id="google-btn" onclick="signInWithGoogle()" style="
+        width:100%; display:flex; align-items:center; justify-content:center; gap:12px;
+        background:white; border:1.5px solid #e8d0d4; border-radius:16px;
+        padding:15px 20px; cursor:pointer; transition:all 0.2s;
+        font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; color:#2d1f1f;
+        box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:20px;">
+        <svg width="20" height="20" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div style="flex:1;height:1px;background:#f0dde0;"></div>
+        <span style="font-size:12px;color:#c4a0a5;font-weight:500;letter-spacing:0.5px;">OR</span>
+        <div style="flex:1;height:1px;background:#f0dde0;"></div>
+      </div>
+
+      <!-- Email/Password tabs -->
+      <div id="auth-toggle" style="display:flex; background:var(--blush); border-radius:14px; padding:4px; margin-bottom:20px;">
+        <button id="tab-signin" onclick="showAuthTab('signin')" style="flex:1; padding:9px; border:none; border-radius:10px; background:var(--rose); color:white; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;">Sign In</button>
+        <button id="tab-signup" onclick="showAuthTab('signup')" style="flex:1; padding:9px; border:none; border-radius:10px; background:transparent; color:var(--text-soft); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;">Sign Up</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="auth-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div id="auth-error" style="color:#e8526a; font-size:13px; margin-bottom:12px; min-height:18px;"></div>
+      <button class="btn-primary" id="auth-submit-btn" onclick="handleAuth()">Sign In 💕</button>
+    </div>
+
+    <p style="text-align:center;font-size:12px;color:#c4a0a5;margin-top:20px;">Your data is private & secure 🔒</p>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" style="display:none;">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <span class="app-title">💕 Love Today</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="header-btn" onclick="openManageCategories()">✦ Categories</button>
+      <div onclick="handleSignOut()" style="display:flex;align-items:center;gap:6px;cursor:pointer;background:#fff0f2;border-radius:12px;padding:6px 10px;border:none;" title="Sign out">
+        <img id="user-photo" src="" style="display:none;width:22px;height:22px;border-radius:50%;object-fit:cover;" alt="">
+        <span id="user-name" style="font-size:12px;font-weight:600;color:var(--rose-dark);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <span style="font-size:13px;color:#c4a0a5;">↩</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div id="home-content"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="screen" id="screen-history">
+    <div class="month-tabs" id="month-tabs"></div>
+    <div id="history-content"></div>
+  </div>
+
+  <!-- HER LIKES -->
+  <div class="screen" id="screen-likes">
+    <p class="section-title">Things she loves 💝</p>
+    <div id="likes-content"></div>
+  </div>
+
+  <!-- FUTURE -->
+  <div class="screen" id="screen-future">
+    <p class="section-title">Plans to look forward to 🌟</p>
+    <div id="future-content"></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="screen" id="screen-stats">
+    <div id="stats-content"></div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openAddModal()">+</button>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-item active" onclick="switchTab('home', this)">
+    <span class="tab-icon">🏠</span>Home
+  </button>
+  <button class="tab-item" onclick="switchTab('history', this)">
+    <span class="tab-icon">📖</span>History
+  </button>
+  <button class="tab-item" onclick="switchTab('likes', this)">
+    <span class="tab-icon">💝</span>Her Likes
+  </button>
+  <button class="tab-item" onclick="switchTab('future', this)">
+    <span class="tab-icon">🌟</span>Future
+  </button>
+  <button class="tab-item" onclick="switchTab('stats', this)">
+    <span class="tab-icon">📊</span>Stats
+  </button>
+</div>
+
+<!-- ADD ENTRY MODAL -->
+<div class="modal-overlay" id="entry-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">New Memory ✨</div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" class="form-input" id="inp-desc" placeholder="What happened today...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date & Time</label>
+      <input type="datetime-local" class="form-input" id="inp-datetime">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <div class="cat-chips" id="cat-chips"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comment</label>
+      <textarea class="form-textarea" id="inp-comment" placeholder="Add a sweet note..."></textarea>
+    </div>
+    <button class="btn-primary" onclick="saveEntry()">Save Memory 💕</button>
+    <button class="btn-secondary" onclick="closeModal('entry-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ADD LIKES MODAL -->
+<div class="modal-overlay" id="likes-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Add Her Like 💝</div>
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input type="text" class="form-input" id="inp-like-name" placeholder="e.g. Lavender scented candles">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location</label>
+      <input type="text" class="form-input" id="inp-like-loc" placeholder="e.g. Blue Jasmine, Park Street">
+    </div>
+    <button class="btn-primary" onclick="saveLike()">Save 💝</button>
+    <button class="btn-secondary" onclick="closeModal('likes-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- ADD FUTURE MODAL -->
+<div class="modal-overlay" id="future-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Future Plan 🌟</div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" class="form-input" id="inp-fut-desc" placeholder="A dream date, trip, surprise...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date & Time</label>
+      <input type="datetime-local" class="form-input" id="inp-fut-datetime">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <div class="cat-chips" id="fut-cat-chips"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea class="form-textarea" id="inp-fut-comment" placeholder="Details, ideas, feelings..."></textarea>
+    </div>
+    <button class="btn-primary" onclick="saveFuture()">Save Plan 🌟</button>
+    <button class="btn-secondary" onclick="closeModal('future-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- MANAGE CATEGORIES MODAL -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Manage Categories ✦</div>
+    <div id="cat-list"></div>
+    <div class="add-cat-row">
+      <input type="text" class="add-cat-input" id="new-cat-input" placeholder="New category name...">
+      <button class="add-cat-btn" onclick="addCategory()">+</button>
+    </div>
+    <button class="btn-secondary" style="margin-top:20px" onclick="closeModal('cat-modal')">Done</button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Memory ✏️</div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" class="form-input" id="edit-desc">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date & Time</label>
+      <input type="datetime-local" class="form-input" id="edit-datetime">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <div class="cat-chips" id="edit-cat-chips"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comment</label>
+      <textarea class="form-textarea" id="edit-comment"></textarea>
+    </div>
+    <button class="btn-primary" onclick="updateEntry()">Update 💕</button>
+    <button class="btn-secondary" onclick="closeModal('edit-modal')">Cancel</button>
+  </div>
+</div>
+
+</div><!-- end app-shell -->
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ============================================================
+// 🔥 PASTE YOUR FIREBASE CONFIG HERE
+// (From Firebase Console → Project Settings → Your apps)
+// ============================================================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+// ============================================================
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Expose to global scope
+window._auth = auth;
+window._db = db;
+window._firestore = { doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy };
+window._authFns = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
+window._googleProvider = new GoogleAuthProvider();
+window._signInWithPopup = signInWithPopup;
+
+// Auth state listener
+onAuthStateChanged(auth, user => {
+  if (user) {
+    window._userId = user.uid;
+    window._userName = user.displayName || user.email?.split('@')[0] || 'You';
+    window._userPhoto = user.photoURL;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-shell').style.display = 'block';
+
+    // Update header with user info
+    const nameEl = document.getElementById('user-name');
+    const photoEl = document.getElementById('user-photo');
+    if (nameEl) nameEl.textContent = window._userName;
+    if (photoEl && window._userPhoto) {
+      photoEl.src = window._userPhoto;
+      photoEl.style.display = 'block';
+    }
+
+    initFirestoreSync();
+  } else {
+    window._userId = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-shell').style.display = 'none';
+  }
+});
+</script>
+
+<script>
+// DATA — starts empty, loaded from Firestore
+let data = { entries: [], likes: [], future: [], categories: ['Food','Gift','Movie','Place','Sex','Argument','Date','Trip'] };
+let _unsubscribers = [];
+
+function initFirestoreSync() {
+  const { db, _firestore: fs, _userId: uid } = window;
+  if (!db || !uid) return;
+  const { onSnapshot, doc, collection, query, orderBy } = window._firestore;
+  const db2 = window._db;
+
+  // Unsubscribe previous listeners
+  _unsubscribers.forEach(u => u());
+  _unsubscribers = [];
+
+  // Settings doc (categories)
+  const settingsRef = doc(db2, 'users', uid, 'settings', 'main');
+  _unsubscribers.push(onSnapshot(settingsRef, snap => {
+    if (snap.exists()) {
+      data.categories = snap.data().categories || data.categories;
+    }
+    refreshCurrentTab();
+  }));
+
+  // Entries
+  const entriesRef = collection(db2, 'users', uid, 'entries');
+  _unsubscribers.push(onSnapshot(query(entriesRef, orderBy('datetime', 'desc')), snap => {
+    data.entries = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
+    refreshCurrentTab();
+  }));
+
+  // Likes
+  const likesRef = collection(db2, 'users', uid, 'likes');
+  _unsubscribers.push(onSnapshot(query(likesRef, orderBy('datetime', 'desc')), snap => {
+    data.likes = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
+    if (window.currentTab === 'likes') renderLikes();
+  }));
+
+  // Future
+  const futureRef = collection(db2, 'users', uid, 'future');
+  _unsubscribers.push(onSnapshot(query(futureRef, orderBy('datetime', 'asc')), snap => {
+    data.future = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
+    if (window.currentTab === 'future') renderFuture();
+  }));
+}
+
+function refreshCurrentTab() {
+  const t = window.currentTab || 'home';
+  if (t === 'home') renderHome();
+  else if (t === 'history') renderHistory();
+  else if (t === 'stats') renderStats();
+}
+
+async function save() {
+  // No-op: direct Firestore writes handle persistence
+}
+
+async function fbAdd(col, obj) {
+  const { addDoc, collection } = window._firestore;
+  const db2 = window._db;
+  const uid = window._userId;
+  if (!db2 || !uid) return;
+  delete obj._docId;
+  await addDoc(collection(db2, 'users', uid, col), obj);
+}
+
+async function fbUpdate(col, docId, obj) {
+  const { doc, updateDoc } = window._firestore;
+  const db2 = window._db;
+  const uid = window._userId;
+  if (!db2 || !uid || !docId) return;
+  delete obj._docId;
+  await updateDoc(doc(db2, 'users', uid, col, docId), obj);
+}
+
+async function fbDelete(col, docId) {
+  const { doc, deleteDoc } = window._firestore;
+  const db2 = window._db;
+  const uid = window._userId;
+  if (!db2 || !uid || !docId) return;
+  await deleteDoc(doc(db2, 'users', uid, col, docId));
+}
+
+async function fbSaveCategories(cats) {
+  const { doc, setDoc } = window._firestore;
+  const db2 = window._db;
+  const uid = window._userId;
+  if (!db2 || !uid) return;
+  await setDoc(doc(db2, 'users', uid, 'settings', 'main'), { categories: cats }, { merge: true });
+}
+
+let currentTab = 'home';
+let editIndex = null;
+let editFutureIndex = null;
+
+const catEmoji = {
+  'Food':'🍽️','Gift':'🎁','Movie':'🎬','Place':'📍','Sex':'💋','Argument':'💬',
+  'Date':'💕','Trip':'✈️'
+};
+
+function getEmoji(cat) { return catEmoji[cat] || '✦'; }
+
+// save() is now a no-op; Firestore listeners keep data fresh
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  currentTab = tab;
+
+  // FAB visibility
+  document.getElementById('fab').style.display = tab === 'stats' ? 'none' : 'flex';
+
+  if (tab === 'home') renderHome();
+  else if (tab === 'history') renderHistory();
+  else if (tab === 'likes') renderLikes();
+  else if (tab === 'future') renderFuture();
+  else if (tab === 'stats') renderStats();
+}
+
+function openAddModal() {
+  if (currentTab === 'likes') { openLikesModal(); return; }
+  if (currentTab === 'future') { openFutureModal(); return; }
+
+  // home/history -> entry modal
+  const now = new Date();
+  document.getElementById('inp-datetime').value = toLocalISOString(now);
+  document.getElementById('inp-desc').value = '';
+  document.getElementById('inp-comment').value = '';
+  document.getElementById('modal-title').textContent = 'New Memory ✨';
+  renderCatChips('cat-chips', null);
+  openModal('entry-modal');
+}
+
+function toLocalISOString(d) {
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function renderCatChips(containerId, selectedCat) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = data.categories.map(cat =>
+    `<div class="cat-chip ${selectedCat === cat ? 'selected' : ''}" onclick="selectChip(this,'${containerId}')">${getEmoji(cat)} ${cat}</div>`
+  ).join('');
+}
+
+function selectChip(el, containerId) {
+  document.querySelectorAll(`#${containerId} .cat-chip`).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function getSelectedCat(containerId) {
+  const sel = document.querySelector(`#${containerId} .cat-chip.selected`);
+  return sel ? sel.textContent.trim().replace(/^[\S\u00A0]+\s/, '') : null;
+}
+
+async function saveEntry() {
+  const desc = document.getElementById('inp-desc').value.trim();
+  if (!desc) { showToast('Please add a description!'); return; }
+  const dt = document.getElementById('inp-datetime').value;
+  const comment = document.getElementById('inp-comment').value.trim();
+  const cat = getSelectedCat('cat-chips');
+
+  await fbAdd('entries', { id: Date.now(), desc, datetime: dt || toLocalISOString(new Date()), comment: comment || '', cat: cat || '' });
+  closeModal('entry-modal');
+  showToast('Memory saved 💕');
+}
+
+async function deleteEntry(id) {
+  if (!confirm('Delete this memory?')) return;
+  const e = data.entries.find(x => x.id === id);
+  if (e) await fbDelete('entries', e._docId);
+  showToast('Deleted');
+}
+
+function editEntry(id) {
+  const e = data.entries.find(x => x.id === id);
+  if (!e) return;
+  editIndex = id;
+  document.getElementById('edit-desc').value = e.desc;
+  document.getElementById('edit-datetime').value = e.datetime;
+  document.getElementById('edit-comment').value = e.comment || '';
+  renderCatChips('edit-cat-chips', e.cat);
+  openModal('edit-modal');
+}
+
+async function updateEntry() {
+  const e = data.entries.find(x => x.id === editIndex);
+  if (!e) return;
+  const updated = {
+    desc: document.getElementById('edit-desc').value.trim() || e.desc,
+    datetime: document.getElementById('edit-datetime').value,
+    comment: document.getElementById('edit-comment').value.trim(),
+    cat: getSelectedCat('edit-cat-chips') || e.cat,
+    id: e.id
+  };
+  await fbUpdate('entries', e._docId, updated);
+  closeModal('edit-modal');
+  showToast('Updated 💕');
+}
+
+// LIKES
+function openLikesModal() {
+  document.getElementById('inp-like-name').value = '';
+  document.getElementById('inp-like-loc').value = '';
+  openModal('likes-modal');
+}
+
+async function saveLike() {
+  const name = document.getElementById('inp-like-name').value.trim();
+  if (!name) { showToast('Please enter a name!'); return; }
+  const loc = document.getElementById('inp-like-loc').value.trim();
+  await fbAdd('likes', { id: Date.now(), name, loc: loc || '', datetime: toLocalISOString(new Date()) });
+  closeModal('likes-modal');
+  showToast('Added to Her Likes 💝');
+}
+
+async function deleteLike(id) {
+  if (!confirm('Remove this?')) return;
+  const l = data.likes.find(x => x.id === id);
+  if (l) await fbDelete('likes', l._docId);
+}
+
+// FUTURE
+function openFutureModal() {
+  editFutureIndex = null;
+  document.getElementById('inp-fut-desc').value = '';
+  document.getElementById('inp-fut-comment').value = '';
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('inp-fut-datetime').value = toLocalISOString(tomorrow);
+  renderCatChips('fut-cat-chips', null);
+  openModal('future-modal');
+}
+
+async function saveFuture() {
+  const desc = document.getElementById('inp-fut-desc').value.trim();
+  if (!desc) { showToast('Please add a description!'); return; }
+  const dt = document.getElementById('inp-fut-datetime').value;
+  const comment = document.getElementById('inp-fut-comment').value.trim();
+  const cat = getSelectedCat('fut-cat-chips');
+  await fbAdd('future', { id: Date.now(), desc, datetime: dt, comment: comment || '', cat: cat || '' });
+  closeModal('future-modal');
+  showToast('Future plan saved 🌟');
+}
+
+async function deleteFuture(id) {
+  if (!confirm('Remove this plan?')) return;
+  const f = data.future.find(x => x.id === id);
+  if (f) await fbDelete('future', f._docId);
+}
+
+// CATEGORIES
+function openManageCategories() {
+  renderCatList();
+  openModal('cat-modal');
+}
+
+function renderCatList() {
+  document.getElementById('cat-list').innerHTML = data.categories.map((cat, i) =>
+    `<div class="cat-manage-item">
+      <span class="cat-manage-name">${getEmoji(cat)} ${cat}</span>
+      <button class="delete-btn" onclick="deleteCat(${i})">✕</button>
+    </div>`
+  ).join('');
+}
+
+async function addCategory() {
+  const val = document.getElementById('new-cat-input').value.trim();
+  if (!val) return;
+  if (data.categories.includes(val)) { showToast('Already exists!'); return; }
+  data.categories.push(val);
+  document.getElementById('new-cat-input').value = '';
+  await fbSaveCategories(data.categories);
+  renderCatList();
+}
+
+async function deleteCat(i) {
+  if (data.categories.length <= 1) { showToast('Need at least one category!'); return; }
+  data.categories.splice(i, 1);
+  await fbSaveCategories(data.categories);
+  renderCatList();
+}
+
+// MODAL HELPERS
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// RENDER FUNCTIONS
+function formatDate(dtStr) {
+  const d = new Date(dtStr);
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatTime(dtStr) {
+  const d = new Date(dtStr);
+  return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatFull(dtStr) {
+  return formatDate(dtStr) + ' · ' + formatTime(dtStr);
+}
+
+function isToday(dtStr) {
+  const d = new Date(dtStr);
+  const now = new Date();
+  return d.toDateString() === now.toDateString();
+}
+
+function entryCard(e, futureMode = false) {
+  return `<div class="card ${futureMode ? 'future' : ''}">
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+      ${e.cat ? `<span class="card-category"><span class="cat-emoji">${getEmoji(e.cat)}</span>${e.cat}</span>` : ''}
+      ${futureMode ? `<span class="future-badge">Upcoming</span>` : ''}
+    </div>
+    <div class="card-desc">${e.desc}</div>
+    ${e.comment ? `<div class="card-comment">"${e.comment}"</div>` : ''}
+    <div class="card-meta">🕐 ${formatFull(e.datetime)}</div>
+    <div class="card-actions">
+      ${!futureMode ? `<button class="icon-btn" onclick="editEntry(${e.id})">✏️</button>` : ''}
+      <button class="icon-btn" onclick="${futureMode ? 'deleteFuture' : 'deleteEntry'}(${e.id})">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function renderHome() {
+  const today = data.entries.filter(e => isToday(e.datetime));
+  const sorted = [...today].sort((a,b) => new Date(b.datetime) - new Date(a.datetime));
+  const el = document.getElementById('home-content');
+
+  if (sorted.length === 0) {
+    el.innerHTML = `<div class="empty">
+      <div class="empty-icon">💕</div>
+      <div class="empty-title">Start your love story today</div>
+      <p>Tap <strong>+</strong> to add your first memory</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = `<div class="date-divider"><span>Today — ${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}</span></div>
+    ${sorted.map(e => entryCard(e)).join('')}`;
+}
+
+function renderHistory() {
+  // Build month list
+  const allSorted = [...data.entries].sort((a,b) => new Date(b.datetime) - new Date(a.datetime));
+
+  const months = [];
+  const monthSet = new Set();
+  allSorted.forEach(e => {
+    const d = new Date(e.datetime);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if (!monthSet.has(key)) { monthSet.add(key); months.push(key); }
+  });
+
+  const tabsEl = document.getElementById('month-tabs');
+  tabsEl.innerHTML = '<button class="month-tab active" onclick="filterHistoryMonth(\'all\', this)">All</button>' +
+    months.map(m => {
+      const [y, mo] = m.split('-');
+      const label = new Date(y, mo-1).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+      return `<button class="month-tab" onclick="filterHistoryMonth('${m}', this)">${label}</button>`;
+    }).join('');
+
+  renderHistoryEntries('all');
+}
+
+function filterHistoryMonth(key, el) {
+  document.querySelectorAll('#month-tabs .month-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderHistoryEntries(key);
+}
+
+function renderHistoryEntries(key) {
+  let entries = [...data.entries].sort((a,b) => new Date(b.datetime) - new Date(a.datetime));
+  if (key !== 'all') {
+    entries = entries.filter(e => {
+      const d = new Date(e.datetime);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` === key;
+    });
+  }
+
+  const el = document.getElementById('history-content');
+  if (entries.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📖</div><div class="empty-title">No entries here yet</div></div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  entries.forEach(e => {
+    const day = formatDate(e.datetime);
+    if (!groups[day]) groups[day] = [];
+    groups[day].push(e);
+  });
+
+  el.innerHTML = Object.entries(groups).map(([day, items]) =>
+    `<div class="date-divider"><span>${day}</span></div>` + items.map(e => entryCard(e)).join('')
+  ).join('');
+}
+
+function renderLikes() {
+  const el = document.getElementById('likes-content');
+  if (data.likes.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">💝</div><div class="empty-title">Nothing here yet</div><p>Tap + to add things she loves</p></div>`;
+    return;
+  }
+  el.innerHTML = data.likes.sort((a,b) => b.id - a.id).map(l =>
+    `<div class="likes-card">
+      <div class="likes-icon">❤️</div>
+      <div class="likes-info">
+        <div class="likes-name">${l.name}</div>
+        ${l.loc ? `<div class="likes-loc">📍 ${l.loc}</div>` : ''}
+        <div class="card-meta" style="margin-top:4px">🕐 ${formatFull(l.datetime)}</div>
+      </div>
+      <button class="icon-btn" onclick="deleteLike(${l.id})">🗑️</button>
+    </div>`
+  ).join('');
+}
+
+function renderFuture() {
+  const el = document.getElementById('future-content');
+  const upcoming = [...data.future]
+    .filter(e => new Date(e.datetime) > new Date())
+    .sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
+  const past = [...data.future]
+    .filter(e => new Date(e.datetime) <= new Date())
+    .sort((a,b) => new Date(b.datetime) - new Date(a.datetime));
+
+  let html = '';
+  if (upcoming.length === 0 && past.length === 0) {
+    html = `<div class="empty"><div class="empty-icon">🌟</div><div class="empty-title">Dream a little</div><p>Tap + to add future plans</p></div>`;
+  } else {
+    if (upcoming.length) html += upcoming.map(e => entryCard(e, true)).join('');
+    if (past.length) {
+      html += `<div class="date-divider"><span>Past Plans</span></div>`;
+      html += past.map(e => entryCard(e, true)).join('');
+    }
+  }
+  el.innerHTML = html;
+}
+
+function renderStats() {
+  const el = document.getElementById('stats-content');
+  const total = data.entries.length;
+  const todayCount = data.entries.filter(e => isToday(e.datetime)).length;
+
+  // Category counts
+  const catCounts = {};
+  data.entries.forEach(e => {
+    if (e.cat) catCounts[e.cat] = (catCounts[e.cat] || 0) + 1;
+  });
+  const maxCat = Math.max(...Object.values(catCounts), 1);
+  const topCat = Object.entries(catCounts).sort((a,b) => b[1] - a[1])[0];
+
+  // Monthly counts (last 6 months)
+  const monthStats = {};
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('en-IN', { month: 'short' });
+    monthStats[key] = { label, count: 0 };
+  }
+  data.entries.forEach(e => {
+    const d = new Date(e.datetime);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if (monthStats[key]) monthStats[key].count++;
+  });
+  const maxMonth = Math.max(...Object.values(monthStats).map(m => m.count), 1);
+
+  el.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-num">${total}</span>
+        <span class="stat-label">Total Memories</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${todayCount}</span>
+        <span class="stat-label">Today</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${data.likes.length}</span>
+        <span class="stat-label">Her Likes</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${data.future.filter(e => new Date(e.datetime) > new Date()).length}</span>
+        <span class="stat-label">Upcoming</span>
+      </div>
+    </div>
+
+    <div class="section-title">By Category</div>
+    ${Object.entries(catCounts).length === 0 ? '<p style="color:var(--text-soft);font-size:14px">No data yet</p>' :
+      Object.entries(catCounts).sort((a,b) => b[1]-a[1]).map(([cat, count]) =>
+        `<div class="chart-bar-wrap">
+          <div class="chart-bar-label"><span>${getEmoji(cat)} ${cat}</span><span>${count}</span></div>
+          <div class="chart-bar-track">
+            <div class="chart-bar-fill" style="width:${Math.round(count/maxCat*100)}%"></div>
+          </div>
+        </div>`
+      ).join('')
+    }
+
+    <div class="section-title">Monthly Activity</div>
+    ${Object.values(monthStats).map(m =>
+      `<div class="chart-bar-wrap">
+        <div class="chart-bar-label"><span>${m.label}</span><span>${m.count}</span></div>
+        <div class="chart-bar-track">
+          <div class="chart-bar-fill" style="width:${Math.round(m.count/maxMonth*100)}%"></div>
+        </div>
+      </div>`
+    ).join('')}
+    ${topCat ? `<div style="margin-top:20px; padding:16px; background:white; border-radius:18px; text-align:center; box-shadow:var(--shadow)">
+      <div style="font-size:28px; margin-bottom:4px">${getEmoji(topCat[0])}</div>
+      <div style="font-family:'Playfair Display',serif; font-style:italic; color:var(--rose); font-size:16px">Most memorable</div>
+      <div style="font-size:20px; font-weight:600; color:var(--text)">${topCat[0]}</div>
+      <div style="font-size:13px; color:var(--text-soft)">${topCat[1]} times</div>
+    </div>` : ''}
+  `;
+}
+
+// ---- AUTH FUNCTIONS ----
+let _authMode = 'signin';
+
+async function signInWithGoogle() {
+  const btn = document.getElementById('google-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  btn.innerHTML = `<span style="font-size:15px">⏳</span> Signing in...`;
+  const errEl = document.getElementById('auth-error');
+  errEl.textContent = '';
+  try {
+    await window._signInWithPopup(window._auth, window._googleProvider);
+    // onAuthStateChanged handles the rest
+  } catch (err) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google`;
+    if (err.code !== 'auth/popup-closed-by-user') {
+      errEl.textContent = 'Google sign-in failed. Try again.';
+    }
+  }
+}
+
+function showAuthTab(mode) {
+  _authMode = mode;
+  const isSignin = mode === 'signin';
+  document.getElementById('tab-signin').style.background = isSignin ? 'var(--rose)' : 'transparent';
+  document.getElementById('tab-signin').style.color = isSignin ? 'white' : 'var(--text-soft)';
+  document.getElementById('tab-signup').style.background = !isSignin ? 'var(--rose)' : 'transparent';
+  document.getElementById('tab-signup').style.color = !isSignin ? 'white' : 'var(--text-soft)';
+  document.getElementById('auth-submit-btn').textContent = isSignin ? 'Sign In 💕' : 'Create Account 💕';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+
+  if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
+  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+
+  const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window._authFns;
+  const auth = window._auth;
+
+  try {
+    if (_authMode === 'signin') {
+      await signInWithEmailAndPassword(auth, email, password);
+    } else {
+      await createUserWithEmailAndPassword(auth, email, password);
+    }
+  } catch (err) {
+    const msgs = {
+      'auth/user-not-found': 'No account found. Sign up instead?',
+      'auth/wrong-password': 'Incorrect password.',
+      'auth/email-already-in-use': 'Email already registered. Sign in instead.',
+      'auth/invalid-email': 'Invalid email address.',
+      'auth/weak-password': 'Password must be at least 6 characters.',
+      'auth/invalid-credential': 'Incorrect email or password.',
+    };
+    errEl.textContent = msgs[err.code] || err.message;
+    errEl.style.display = 'block';
+  }
+}
+
+async function handleSignOut() {
+  if (!confirm('Sign out of Love Today?')) return;
+  _unsubscribers.forEach(u => u());
+  _unsubscribers = [];
+  data = { entries: [], likes: [], future: [], categories: ['Food','Gift','Movie','Place','Sex','Argument','Date','Trip'] };
+  await window._authFns.signOut(window._auth);
+}
+
+// Allow pressing Enter on password field
+document.getElementById('auth-password')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleAuth();
+});
+
+// ---- INIT ----
+// App starts via onAuthStateChanged in the Firebase module above
+// currentTab exposed globally for Firestore listeners
+window.currentTab = currentTab;
+const _origSwitchTab = switchTab;
+switchTab = function(tab, el) {
+  window.currentTab = tab;
+  currentTab = tab;
+  _origSwitchTab(tab, el);
+};
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+
+// PWA Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner after 3 seconds if not dismissed
+  setTimeout(() => {
+    if (deferredPrompt) showInstallBanner();
+  }, 3000);
+});
+
+function showInstallBanner() {
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = `
+    position:fixed; bottom:calc(var(--tab-h) + 80px); left:16px; right:16px;
+    background:white; border-radius:16px; padding:14px 16px;
+    box-shadow:0 8px 32px rgba(232,82,106,0.25);
+    border:1px solid rgba(232,82,106,0.15);
+    display:flex; align-items:center; gap:12px; z-index:500;
+    animation: fadeUp 0.3s ease;
+  `;
+  banner.innerHTML = `
+    <span style="font-size:28px">💕</span>
+    <div style="flex:1">
+      <div style="font-weight:600;font-size:14px;color:#2d1f1f">Install Love Today</div>
+      <div style="font-size:12px;color:#8c6b6b">Add to your home screen</div>
+    </div>
+    <button onclick="installApp()" style="background:#e8526a;color:white;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer">Install</button>
+    <button onclick="document.getElementById('install-banner').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#8c6b6b;padding:4px">✕</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner')?.remove();
+  if (outcome === 'accepted') showToast('App installed! 💕');
+}
+
+window.addEventListener('appinstalled', () => {
+  showToast('Love Today installed! 💕');
+  deferredPrompt = null;
+});
+</script>
+</body>
+</html>
