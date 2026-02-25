@@ -889,40 +889,19 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK (Firestore only — no Auth needed) -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAtmbfK7tKPTioxoQuC0kqq9Y0MGC95wPE",
-  authDomain: "love-today-231dc.firebaseapp.com",
-  projectId: "love-today-231dc",
-  storageBucket: "love-today-231dc.firebasestorage.app",
-  messagingSenderId: "576243792568",
-  appId: "1:576243792568:web:1e4acfb0c4795dc318524d",
-  measurementId: "G-YLPPCY6W8Z"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Expose everything globally
-window._db = db;
-window._doc = doc;
-window._setDoc = setDoc;
-window._onSnapshot = onSnapshot;
-window._collection = collection;
-window._addDoc = addDoc;
-window._deleteDoc = deleteDoc;
-window._updateDoc = updateDoc;
-window._query = query;
-window._orderBy = orderBy;
-
-window._firebaseReady = true;
-// Use setTimeout to ensure the regular <script> block has parsed first
-setTimeout(() => window.dispatchEvent(new Event('firebase-ready')), 0);
+<!-- Firebase Compat SDK — no module timing issues -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  const _fbApp = firebase.initializeApp({
+    apiKey: "AIzaSyAtmbfK7tKPTioxoQuC0kqq9Y0MGC95wPE",
+    authDomain: "love-today-231dc.firebaseapp.com",
+    projectId: "love-today-231dc",
+    storageBucket: "love-today-231dc.firebasestorage.app",
+    messagingSenderId: "576243792568",
+    appId: "1:576243792568:web:1e4acfb0c4795dc318524d"
+  });
+  window._db = firebase.firestore();
 </script>
 
 <script>
@@ -933,38 +912,33 @@ let _unsubscribers = [];
 function initFirestoreSync() {
   const db = window._db;
   const uid = window._userId;
-  if (!db || !uid) { console.error('initFirestoreSync: missing db or uid'); return; }
+  if (!db || !uid) { showToast('Connection error. Reload app.'); return; }
 
-  // Unsubscribe previous listeners
   _unsubscribers.forEach(u => u());
   _unsubscribers = [];
 
-  console.log('Syncing for user:', uid);
+  const base = db.collection('users').doc(uid);
 
   // Settings (categories)
-  const settingsRef = window._doc(db, 'users', uid, 'settings', 'main');
-  _unsubscribers.push(window._onSnapshot(settingsRef, snap => {
-    if (snap.exists()) data.categories = snap.data().categories || data.categories;
+  _unsubscribers.push(base.collection('settings').doc('main').onSnapshot(snap => {
+    if (snap.exists) data.categories = snap.data().categories || data.categories;
     refreshCurrentTab();
   }));
 
   // Entries
-  const entriesRef = window._collection(db, 'users', uid, 'entries');
-  _unsubscribers.push(window._onSnapshot(window._query(entriesRef, window._orderBy('datetime', 'desc')), snap => {
+  _unsubscribers.push(base.collection('entries').orderBy('datetime', 'desc').onSnapshot(snap => {
     data.entries = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
     refreshCurrentTab();
   }));
 
   // Likes
-  const likesRef = window._collection(db, 'users', uid, 'likes');
-  _unsubscribers.push(window._onSnapshot(window._query(likesRef, window._orderBy('datetime', 'desc')), snap => {
+  _unsubscribers.push(base.collection('likes').orderBy('datetime', 'desc').onSnapshot(snap => {
     data.likes = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
     if (window.currentTab === 'likes') renderLikes();
   }));
 
   // Future
-  const futureRef = window._collection(db, 'users', uid, 'future');
-  _unsubscribers.push(window._onSnapshot(window._query(futureRef, window._orderBy('datetime', 'asc')), snap => {
+  _unsubscribers.push(base.collection('future').orderBy('datetime', 'asc').onSnapshot(snap => {
     data.future = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
     if (window.currentTab === 'future') renderFuture();
   }));
@@ -984,29 +958,29 @@ async function save() {
 async function fbAdd(col, obj) {
   const db = window._db;
   const uid = window._userId;
-  if (!db || !uid) { console.error('fbAdd: missing db or uid'); return; }
+  if (!db || !uid) { showToast('Not connected. Try again.'); return; }
   delete obj._docId;
   try {
-    await window._addDoc(window._collection(db, 'users', uid, col), obj);
-  } catch(e) { console.error('fbAdd error:', e); showToast('Save failed. Check connection.'); }
+    await db.collection('users').doc(uid).collection(col).add(obj);
+  } catch(e) { console.error('fbAdd error:', e); showToast('Save failed: ' + e.message); }
 }
 
 async function fbUpdate(col, docId, obj) {
   const db = window._db;
   const uid = window._userId;
-  if (!db || !uid || !docId) { console.error('fbUpdate: missing params'); return; }
+  if (!db || !uid || !docId) { showToast('Update error.'); return; }
   delete obj._docId;
   try {
-    await window._updateDoc(window._doc(db, 'users', uid, col, docId), obj);
-  } catch(e) { console.error('fbUpdate error:', e); showToast('Update failed.'); }
+    await db.collection('users').doc(uid).collection(col).doc(docId).update(obj);
+  } catch(e) { console.error('fbUpdate error:', e); showToast('Update failed: ' + e.message); }
 }
 
 async function fbDelete(col, docId) {
   const db = window._db;
   const uid = window._userId;
-  if (!db || !uid || !docId) { console.error('fbDelete: missing params'); return; }
+  if (!db || !uid || !docId) return;
   try {
-    await window._deleteDoc(window._doc(db, 'users', uid, col, docId));
+    await db.collection('users').doc(uid).collection(col).doc(docId).delete();
   } catch(e) { console.error('fbDelete error:', e); showToast('Delete failed.'); }
 }
 
@@ -1015,7 +989,7 @@ async function fbSaveCategories(cats) {
   const uid = window._userId;
   if (!db || !uid) return;
   try {
-    await window._setDoc(window._doc(db, 'users', uid, 'settings', 'main'), { categories: cats }, { merge: true });
+    await db.collection('users').doc(uid).collection('settings').doc('main').set({ categories: cats }, { merge: true });
   } catch(e) { console.error('fbSaveCategories error:', e); }
 }
 
@@ -1540,17 +1514,12 @@ function pinSubmit() {
 }
 
 function pinSuccess(pin) {
-  // Use hashed PIN as user ID so it's never stored in plain text on server
   const userId = 'u_' + btoa(pin).replace(/=/g, '');
   window._userId = userId;
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
-  // Init after Firebase is ready
-  if (window._firebaseReady) {
-    initFirestoreSync();
-  } else {
-    window.addEventListener('firebase-ready', initFirestoreSync, { once: true });
-  }
+  initFirestoreSync();
+  renderHome();
 }
 
 function handleSignOut() {
