@@ -1491,24 +1491,15 @@ function pinSubmit() {
   const savedPin = localStorage.getItem('lt_pin');
 
   if (_pinMode === 'enter') {
-    if (!savedPin) {
-      // First time — set a new PIN
-      _pinMode = 'set';
-      _pinFirst = '';
-      _pinEntry = '';
-      document.getElementById('pin-title').textContent = 'Create your 6-digit PIN';
-      document.getElementById('pin-subtitle').textContent = 'You'll use this on all your devices';
-      document.getElementById('pin-error').textContent = '';
-      pinUpdateDots();
+    // Verify existing PIN
+    if (_pinEntry === savedPin) {
+      pinSuccess(_pinEntry);
     } else {
-      // Check PIN
-      if (_pinEntry === savedPin) {
-        pinSuccess(_pinEntry);
-      } else {
-        pinShakeError('Wrong PIN. Try again.');
-      }
+      pinShakeError('Wrong PIN. Try again.');
     }
+
   } else if (_pinMode === 'set') {
+    // First step of creating new PIN
     _pinFirst = _pinEntry;
     _pinMode = 'confirm';
     _pinEntry = '';
@@ -1516,16 +1507,18 @@ function pinSubmit() {
     document.getElementById('pin-subtitle').textContent = 'Enter the same PIN again';
     document.getElementById('pin-error').textContent = '';
     pinUpdateDots();
+
   } else if (_pinMode === 'confirm') {
+    // Second step — confirm matches first
     if (_pinEntry === _pinFirst) {
       localStorage.setItem('lt_pin', _pinEntry);
       pinSuccess(_pinEntry);
     } else {
       _pinMode = 'set';
       _pinFirst = '';
-      pinShakeError('PINs don't match. Start again.');
+      pinShakeError("PINs don't match. Try again.");
       setTimeout(() => {
-        document.getElementById('pin-title').textContent = 'Create your 6-digit PIN';
+        document.getElementById('pin-title').textContent = 'Create your PIN';
         document.getElementById('pin-subtitle').textContent = 'Enter a new 6-digit PIN';
       }, 700);
     }
@@ -1564,9 +1557,6 @@ function handleSignOut() {
 }
 
 // ---- INIT ----
-
-// App starts via onAuthStateChanged in the Firebase module above
-// currentTab exposed globally for Firestore listeners
 window.currentTab = currentTab;
 const _origSwitchTab = switchTab;
 switchTab = function(tab, el) {
@@ -1575,19 +1565,19 @@ switchTab = function(tab, el) {
   _origSwitchTab(tab, el);
 };
 
-// Check if PIN already set — show PIN screen regardless (security: always ask on fresh load)
-// But set the correct mode
-window.addEventListener('DOMContentLoaded', () => {
+// Set correct PIN mode immediately (no DOMContentLoaded needed — script runs after DOM)
+(function initPIN() {
   const savedPin = localStorage.getItem('lt_pin');
   if (savedPin) {
+    _pinMode = 'enter';
     document.getElementById('pin-title').textContent = 'Enter your PIN';
     document.getElementById('pin-subtitle').textContent = 'Welcome back 💕';
   } else {
+    _pinMode = 'set';
     document.getElementById('pin-title').textContent = 'Create your PIN';
     document.getElementById('pin-subtitle').textContent = 'Set a 6-digit PIN to protect your memories';
-    _pinMode = 'set';
   }
-});
+})();
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
