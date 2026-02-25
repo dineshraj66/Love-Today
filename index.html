@@ -901,15 +901,14 @@ window._signInWithRedirect = signInWithRedirect;
 // Handle redirect result when page loads (mobile Google sign-in returns here)
 getRedirectResult(auth).then(result => {
   if (result?.user) {
-    // User signed in via redirect — onAuthStateChanged will handle the rest
     console.log('Redirect sign-in success:', result.user.displayName);
+    // onAuthStateChanged handles showing the app
   }
 }).catch(err => {
-  if (err.code !== 'auth/no-current-user') {
-    console.error('Redirect sign-in error:', err);
-    // Show error on auth screen if visible
+  console.warn('Redirect result error (usually safe to ignore):', err.code);
+  if (err.code === 'auth/unauthorized-domain') {
     const errEl = document.getElementById('auth-error');
-    if (errEl) { errEl.textContent = 'Google sign-in failed. Please try again.'; }
+    if (errEl) errEl.textContent = 'Domain not authorized. Check Firebase settings.';
   }
 });
 
@@ -1481,30 +1480,77 @@ async function signInWithGoogle() {
   const errEl = document.getElementById('auth-error');
   errEl.textContent = '';
 
-  // Detect mobile
-  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+  // Detect if running as installed PWA (standalone mode)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+
+  // Detect mobile browser (not PWA)
+  const isMobileBrowser = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   btn.disabled = true;
   btn.style.opacity = '0.7';
-  btn.innerHTML = `<span style="font-size:15px">⏳</span> &nbsp;${isMobile ? 'Redirecting...' : 'Signing in...'}`;
 
   try {
-    if (isMobile) {
-      // Mobile: use redirect (no popup blocking issues)
+    if (isStandalone) {
+      // Installed PWA — open login in a real browser tab then come back
+      // Use redirect which works in standalone mode on Android
+      // On iOS standalone, we show instructions to open in Safari
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isIOS) {
+        // iOS PWA can't do redirect auth — tell user to open in Safari
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        showPWALoginHint();
+        return;
+      } else {
+        // Android PWA — redirect works
+        btn.innerHTML = `<span>⏳</span> &nbsp;Redirecting to Google...`;
+        await window._signInWithRedirect(window._auth, window._googleProvider);
+      }
+    } else if (isMobileBrowser) {
+      // Mobile browser (Chrome/Safari) — redirect is most reliable
+      btn.innerHTML = `<span>⏳</span> &nbsp;Redirecting to Google...`;
       await window._signInWithRedirect(window._auth, window._googleProvider);
-      // Page will redirect to Google and come back — no code runs after this
     } else {
-      // Desktop: use popup
+      // Desktop browser — popup works fine
+      btn.innerHTML = `<span>⏳</span> &nbsp;Signing in...`;
       await window._signInWithPopup(window._auth, window._googleProvider);
     }
   } catch (err) {
     btn.disabled = false;
     btn.style.opacity = '1';
-    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google`;
-    if (err.code !== 'auth/popup-closed-by-user') {
-      errEl.textContent = 'Google sign-in failed. Try again.';
+    btn.innerHTML = googleBtnHTML();
+    if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+      errEl.textContent = 'Google sign-in failed. Try email/password instead.';
+      console.error('Auth error:', err.code, err.message);
     }
   }
+}
+
+function googleBtnHTML() {
+  return `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google`;
+}
+
+function showPWALoginHint() {
+  // iOS PWA limitation — show a friendly modal explaining what to do
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `position:fixed;inset:0;background:rgba(45,31,31,0.6);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;`;
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:24px;padding:28px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="font-size:40px;margin-bottom:12px;">🌐</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;color:#e8526a;font-style:italic;margin-bottom:10px;">Open in Safari</div>
+      <p style="font-size:14px;color:#6b4c4c;line-height:1.6;margin-bottom:20px;">
+        To sign in with Google, please open this app in <strong>Safari browser</strong> first, sign in, then add it to your home screen.
+        <br><br>
+        Or use <strong>Email / Password</strong> to sign in directly from the app.
+      </p>
+      <div style="font-size:12px;color:#b09898;background:#fdf0f2;border-radius:12px;padding:10px;margin-bottom:16px;">
+        📎 <strong>dineshraj66.github.io/Love-Today</strong>
+      </div>
+      <button onclick="this.closest('div').parentElement.remove()" style="background:#e8526a;color:white;border:none;border-radius:14px;padding:13px 24px;font-size:15px;font-weight:600;cursor:pointer;width:100%;">Got it 💕</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
 }
 
 function showAuthTab(mode) {
