@@ -606,14 +606,55 @@
   }
 
   .toast.show { opacity: 1; }
+
+  /* PIN styles */
+  .pin-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid #f0dde0;
+    background: transparent;
+    transition: all 0.15s;
+  }
+  .pin-dot.filled {
+    background: var(--rose);
+    border-color: var(--rose);
+    transform: scale(1.1);
+  }
+  .pin-dot.error {
+    background: #ff4444;
+    border-color: #ff4444;
+    animation: shake 0.4s ease;
+  }
+  .pin-key {
+    background: var(--blush);
+    border: 1.5px solid #f0dde0;
+    border-radius: 16px;
+    padding: 18px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.12s;
+    user-select: none;
+  }
+  .pin-key:active { background: var(--rose-light); transform: scale(0.93); }
+  .pin-del { font-size: 20px; color: var(--text-soft); }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
 </style>
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
+<!-- PIN SCREEN -->
 <div id="auth-screen" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:32px 24px; background:var(--cream);">
 
-  <!-- Background hearts decoration -->
   <div style="position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;z-index:0;">
     <div style="position:absolute;top:8%;left:10%;font-size:40px;opacity:0.06;transform:rotate(-15deg);">💕</div>
     <div style="position:absolute;top:20%;right:8%;font-size:28px;opacity:0.05;transform:rotate(20deg);">❤️</div>
@@ -621,59 +662,49 @@
     <div style="position:absolute;bottom:15%;right:12%;font-size:32px;opacity:0.06;transform:rotate(15deg);">💕</div>
   </div>
 
-  <div style="position:relative;z-index:1;width:100%;max-width:360px;">
+  <div style="position:relative;z-index:1;width:100%;max-width:340px;">
     <!-- Logo -->
-    <div style="text-align:center; margin-bottom:44px;">
+    <div style="text-align:center;margin-bottom:40px;">
       <div style="width:80px;height:80px;background:linear-gradient(135deg,#e8526a,#c73a52);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 16px;box-shadow:0 8px 32px rgba(232,82,106,0.35);">💕</div>
-      <div style="font-family:'Playfair Display',serif; font-size:34px; color:var(--rose); font-style:italic; letter-spacing:-0.5px;">Love Today</div>
-      <div style="font-size:14px; color:var(--text-soft); margin-top:6px; font-weight:400;">Your private love story</div>
+      <div style="font-family:'Playfair Display',serif;font-size:34px;color:var(--rose);font-style:italic;letter-spacing:-0.5px;">Love Today</div>
+      <div style="font-size:14px;color:var(--text-soft);margin-top:6px;">Your private love story</div>
     </div>
 
-    <!-- Card -->
-    <div style="background:white; border-radius:28px; padding:32px 24px; box-shadow:0 8px 40px rgba(232,82,106,0.15); border:1px solid rgba(232,82,106,0.08);">
+    <!-- PIN Card -->
+    <div style="background:white;border-radius:28px;padding:32px 24px;box-shadow:0 8px 40px rgba(232,82,106,0.15);border:1px solid rgba(232,82,106,0.08);">
+      <div id="pin-title" style="font-family:'Playfair Display',serif;font-size:18px;color:var(--text);text-align:center;margin-bottom:6px;font-style:italic;">Enter your 6-digit PIN</div>
+      <div id="pin-subtitle" style="font-size:13px;color:var(--text-soft);text-align:center;margin-bottom:24px;">Same PIN on all your devices</div>
 
-      <!-- Google Sign-In Button -->
-      <button id="google-btn" onclick="signInWithGoogle()" style="
-        width:100%; display:flex; align-items:center; justify-content:center; gap:12px;
-        background:white; border:1.5px solid #e8d0d4; border-radius:16px;
-        padding:15px 20px; cursor:pointer; transition:all 0.2s;
-        font-family:'DM Sans',sans-serif; font-size:15px; font-weight:600; color:#2d1f1f;
-        box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:20px;">
-        <svg width="20" height="20" viewBox="0 0 48 48">
-          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-        </svg>
-        Continue with Google
-      </button>
-
-      <!-- Divider -->
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-        <div style="flex:1;height:1px;background:#f0dde0;"></div>
-        <span style="font-size:12px;color:#c4a0a5;font-weight:500;letter-spacing:0.5px;">OR</span>
-        <div style="flex:1;height:1px;background:#f0dde0;"></div>
+      <!-- PIN dots display -->
+      <div style="display:flex;justify-content:center;gap:12px;margin-bottom:28px;" id="pin-dots">
+        <div class="pin-dot" id="dot-0"></div>
+        <div class="pin-dot" id="dot-1"></div>
+        <div class="pin-dot" id="dot-2"></div>
+        <div class="pin-dot" id="dot-3"></div>
+        <div class="pin-dot" id="dot-4"></div>
+        <div class="pin-dot" id="dot-5"></div>
       </div>
 
-      <!-- Email/Password tabs -->
-      <div id="auth-toggle" style="display:flex; background:var(--blush); border-radius:14px; padding:4px; margin-bottom:20px;">
-        <button id="tab-signin" onclick="showAuthTab('signin')" style="flex:1; padding:9px; border:none; border-radius:10px; background:var(--rose); color:white; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;">Sign In</button>
-        <button id="tab-signup" onclick="showAuthTab('signup')" style="flex:1; padding:9px; border:none; border-radius:10px; background:transparent; color:var(--text-soft); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s;">Sign Up</button>
-      </div>
+      <!-- Error message -->
+      <div id="pin-error" style="color:#e8526a;font-size:13px;text-align:center;min-height:18px;margin-bottom:12px;"></div>
 
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-input" id="auth-email" placeholder="your@email.com" autocomplete="email">
+      <!-- Number Pad -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <button class="pin-key" onclick="pinPress('1')">1</button>
+        <button class="pin-key" onclick="pinPress('2')">2</button>
+        <button class="pin-key" onclick="pinPress('3')">3</button>
+        <button class="pin-key" onclick="pinPress('4')">4</button>
+        <button class="pin-key" onclick="pinPress('5')">5</button>
+        <button class="pin-key" onclick="pinPress('6')">6</button>
+        <button class="pin-key" onclick="pinPress('7')">7</button>
+        <button class="pin-key" onclick="pinPress('8')">8</button>
+        <button class="pin-key" onclick="pinPress('9')">9</button>
+        <div></div>
+        <button class="pin-key" onclick="pinPress('0')">0</button>
+        <button class="pin-key pin-del" onclick="pinDelete()">⌫</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <div id="auth-error" style="color:#e8526a; font-size:13px; margin-bottom:12px; min-height:18px;"></div>
-      <button class="btn-primary" id="auth-submit-btn" onclick="handleAuth()">Sign In 💕</button>
     </div>
-
-    <p style="text-align:center;font-size:12px;color:#c4a0a5;margin-top:20px;">Your data is private & secure 🔒</p>
+    <p style="text-align:center;font-size:12px;color:#c4a0a5;margin-top:20px;">🔒 PIN never leaves your device</p>
   </div>
 </div>
 
@@ -686,11 +717,7 @@
     <span class="app-title">💕 Love Today</span>
     <div style="display:flex;align-items:center;gap:8px;">
       <button class="header-btn" onclick="openManageCategories()">✦ Categories</button>
-      <div onclick="handleSignOut()" style="display:flex;align-items:center;gap:6px;cursor:pointer;background:#fff0f2;border-radius:12px;padding:6px 10px;border:none;" title="Sign out">
-        <img id="user-photo" src="" style="display:none;width:22px;height:22px;border-radius:50%;object-fit:cover;" alt="">
-        <span id="user-name" style="font-size:12px;font-weight:600;color:var(--rose-dark);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-        <span style="font-size:13px;color:#c4a0a5;">↩</span>
-      </div>
+      <button class="header-btn" onclick="handleSignOut()" style="background:#fff0f2;">🔒 Lock</button>
     </div>
   </div>
 </div>
@@ -862,18 +889,12 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK -->
+<!-- Firebase SDK (Firestore only — no Auth needed) -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy }
+import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// ============================================================
-// 🔥 PASTE YOUR FIREBASE CONFIG HERE
-// (From Firebase Console → Project Settings → Your apps)
-// ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyAtmbfK7tKPTioxoQuC0kqq9Y0MGC95wPE",
   authDomain: "love-today-231dc.firebaseapp.com",
@@ -883,60 +904,14 @@ const firebaseConfig = {
   appId: "1:576243792568:web:1e4acfb0c4795dc318524d",
   measurementId: "G-YLPPCY6W8Z"
 };
-// ============================================================
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Expose to global scope
-window._auth = auth;
 window._db = db;
-window._firestore = { doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy };
-window._authFns = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
-window._googleProvider = new GoogleAuthProvider();
-window._signInWithPopup = signInWithPopup;
-window._signInWithRedirect = signInWithRedirect;
-
-// Handle redirect result when page loads (mobile Google sign-in returns here)
-getRedirectResult(auth).then(result => {
-  if (result?.user) {
-    console.log('Redirect sign-in success:', result.user.displayName);
-    // onAuthStateChanged handles showing the app
-  }
-}).catch(err => {
-  console.warn('Redirect result error (usually safe to ignore):', err.code);
-  if (err.code === 'auth/unauthorized-domain') {
-    const errEl = document.getElementById('auth-error');
-    if (errEl) errEl.textContent = 'Domain not authorized. Check Firebase settings.';
-  }
-});
-
-// Auth state listener
-onAuthStateChanged(auth, user => {
-  if (user) {
-    window._userId = user.uid;
-    window._userName = user.displayName || user.email?.split('@')[0] || 'You';
-    window._userPhoto = user.photoURL;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-shell').style.display = 'block';
-
-    // Update header with user info
-    const nameEl = document.getElementById('user-name');
-    const photoEl = document.getElementById('user-photo');
-    if (nameEl) nameEl.textContent = window._userName;
-    if (photoEl && window._userPhoto) {
-      photoEl.src = window._userPhoto;
-      photoEl.style.display = 'block';
-    }
-
-    initFirestoreSync();
-  } else {
-    window._userId = null;
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app-shell').style.display = 'none';
-  }
-});
+window._firestore = { doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy };
+window._firebaseReady = true;
+window.dispatchEvent(new Event('firebase-ready'));
 </script>
 
 <script>
@@ -1472,144 +1447,124 @@ function renderStats() {
   `;
 }
 
-// ---- AUTH FUNCTIONS ----
-let _authMode = 'signin';
+// ---- PIN AUTH ----
+let _pinEntry = '';
+let _pinMode = 'enter'; // 'enter' | 'set' | 'confirm'
+let _pinFirst = '';
 
-async function signInWithGoogle() {
-  const btn = document.getElementById('google-btn');
-  const errEl = document.getElementById('auth-error');
-  errEl.textContent = '';
+function pinUpdateDots() {
+  for (let i = 0; i < 6; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.toggle('filled', i < _pinEntry.length);
+    dot.classList.remove('error');
+  }
+}
 
-  // Detect if running as installed PWA (standalone mode)
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true;
+function pinShakeError(msg) {
+  document.getElementById('pin-error').textContent = msg;
+  for (let i = 0; i < 6; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.remove('filled');
+    dot.classList.add('error');
+  }
+  setTimeout(() => {
+    for (let i = 0; i < 6; i++) document.getElementById('dot-' + i).classList.remove('error');
+    _pinEntry = '';
+    pinUpdateDots();
+  }, 600);
+}
 
-  // Detect mobile browser (not PWA)
-  const isMobileBrowser = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+function pinPress(digit) {
+  if (_pinEntry.length >= 6) return;
+  _pinEntry += digit;
+  pinUpdateDots();
+  if (_pinEntry.length === 6) setTimeout(pinSubmit, 150);
+}
 
-  btn.disabled = true;
-  btn.style.opacity = '0.7';
+function pinDelete() {
+  _pinEntry = _pinEntry.slice(0, -1);
+  pinUpdateDots();
+  document.getElementById('pin-error').textContent = '';
+}
 
-  try {
-    if (isStandalone) {
-      // Installed PWA — open login in a real browser tab then come back
-      // Use redirect which works in standalone mode on Android
-      // On iOS standalone, we show instructions to open in Safari
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      if (isIOS) {
-        // iOS PWA can't do redirect auth — tell user to open in Safari
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        showPWALoginHint();
-        return;
+function pinSubmit() {
+  const savedPin = localStorage.getItem('lt_pin');
+
+  if (_pinMode === 'enter') {
+    if (!savedPin) {
+      // First time — set a new PIN
+      _pinMode = 'set';
+      _pinFirst = '';
+      _pinEntry = '';
+      document.getElementById('pin-title').textContent = 'Create your 6-digit PIN';
+      document.getElementById('pin-subtitle').textContent = 'You'll use this on all your devices';
+      document.getElementById('pin-error').textContent = '';
+      pinUpdateDots();
+    } else {
+      // Check PIN
+      if (_pinEntry === savedPin) {
+        pinSuccess(_pinEntry);
       } else {
-        // Android PWA — redirect works
-        btn.innerHTML = `<span>⏳</span> &nbsp;Redirecting to Google...`;
-        await window._signInWithRedirect(window._auth, window._googleProvider);
+        pinShakeError('Wrong PIN. Try again.');
       }
-    } else if (isMobileBrowser) {
-      // Mobile browser (Chrome/Safari) — redirect is most reliable
-      btn.innerHTML = `<span>⏳</span> &nbsp;Redirecting to Google...`;
-      await window._signInWithRedirect(window._auth, window._googleProvider);
-    } else {
-      // Desktop browser — popup works fine
-      btn.innerHTML = `<span>⏳</span> &nbsp;Signing in...`;
-      await window._signInWithPopup(window._auth, window._googleProvider);
     }
-  } catch (err) {
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.innerHTML = googleBtnHTML();
-    if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-      errEl.textContent = 'Google sign-in failed. Try email/password instead.';
-      console.error('Auth error:', err.code, err.message);
+  } else if (_pinMode === 'set') {
+    _pinFirst = _pinEntry;
+    _pinMode = 'confirm';
+    _pinEntry = '';
+    document.getElementById('pin-title').textContent = 'Confirm your PIN';
+    document.getElementById('pin-subtitle').textContent = 'Enter the same PIN again';
+    document.getElementById('pin-error').textContent = '';
+    pinUpdateDots();
+  } else if (_pinMode === 'confirm') {
+    if (_pinEntry === _pinFirst) {
+      localStorage.setItem('lt_pin', _pinEntry);
+      pinSuccess(_pinEntry);
+    } else {
+      _pinMode = 'set';
+      _pinFirst = '';
+      pinShakeError('PINs don't match. Start again.');
+      setTimeout(() => {
+        document.getElementById('pin-title').textContent = 'Create your 6-digit PIN';
+        document.getElementById('pin-subtitle').textContent = 'Enter a new 6-digit PIN';
+      }, 700);
     }
   }
 }
 
-function googleBtnHTML() {
-  return `<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google`;
-}
-
-function showPWALoginHint() {
-  // iOS PWA limitation — show a friendly modal explaining what to do
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `position:fixed;inset:0;background:rgba(45,31,31,0.6);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px;`;
-  overlay.innerHTML = `
-    <div style="background:white;border-radius:24px;padding:28px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-      <div style="font-size:40px;margin-bottom:12px;">🌐</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;color:#e8526a;font-style:italic;margin-bottom:10px;">Open in Safari</div>
-      <p style="font-size:14px;color:#6b4c4c;line-height:1.6;margin-bottom:20px;">
-        To sign in with Google, please open this app in <strong>Safari browser</strong> first, sign in, then add it to your home screen.
-        <br><br>
-        Or use <strong>Email / Password</strong> to sign in directly from the app.
-      </p>
-      <div style="font-size:12px;color:#b09898;background:#fdf0f2;border-radius:12px;padding:10px;margin-bottom:16px;">
-        📎 <strong>dineshraj66.github.io/Love-Today</strong>
-      </div>
-      <button onclick="this.closest('div').parentElement.remove()" style="background:#e8526a;color:white;border:none;border-radius:14px;padding:13px 24px;font-size:15px;font-weight:600;cursor:pointer;width:100%;">Got it 💕</button>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-}
-
-function showAuthTab(mode) {
-  _authMode = mode;
-  const isSignin = mode === 'signin';
-  document.getElementById('tab-signin').style.background = isSignin ? 'var(--rose)' : 'transparent';
-  document.getElementById('tab-signin').style.color = isSignin ? 'white' : 'var(--text-soft)';
-  document.getElementById('tab-signup').style.background = !isSignin ? 'var(--rose)' : 'transparent';
-  document.getElementById('tab-signup').style.color = !isSignin ? 'white' : 'var(--text-soft)';
-  document.getElementById('auth-submit-btn').textContent = isSignin ? 'Sign In 💕' : 'Create Account 💕';
-  document.getElementById('auth-error').style.display = 'none';
-}
-
-async function handleAuth() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const errEl = document.getElementById('auth-error');
-  errEl.style.display = 'none';
-
-  if (!email || !password) { errEl.textContent = 'Please enter email and password.'; errEl.style.display = 'block'; return; }
-  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
-
-  const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window._authFns;
-  const auth = window._auth;
-
-  try {
-    if (_authMode === 'signin') {
-      await signInWithEmailAndPassword(auth, email, password);
-    } else {
-      await createUserWithEmailAndPassword(auth, email, password);
-    }
-  } catch (err) {
-    const msgs = {
-      'auth/user-not-found': 'No account found. Sign up instead?',
-      'auth/wrong-password': 'Incorrect password.',
-      'auth/email-already-in-use': 'Email already registered. Sign in instead.',
-      'auth/invalid-email': 'Invalid email address.',
-      'auth/weak-password': 'Password must be at least 6 characters.',
-      'auth/invalid-credential': 'Incorrect email or password.',
-    };
-    errEl.textContent = msgs[err.code] || err.message;
-    errEl.style.display = 'block';
+function pinSuccess(pin) {
+  // Use hashed PIN as user ID so it's never stored in plain text on server
+  const userId = 'u_' + btoa(pin).replace(/=/g, '');
+  window._userId = userId;
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'block';
+  // Init after Firebase is ready
+  if (window._firebaseReady) {
+    initFirestoreSync();
+  } else {
+    window.addEventListener('firebase-ready', initFirestoreSync, { once: true });
   }
 }
 
-async function handleSignOut() {
-  if (!confirm('Sign out of Love Today?')) return;
+function handleSignOut() {
+  if (!confirm('Lock the app? You\'ll need your PIN to get back in.')) return;
   _unsubscribers.forEach(u => u());
   _unsubscribers = [];
   data = { entries: [], likes: [], future: [], categories: ['Food','Gift','Movie','Place','Sex','Argument','Date','Trip'] };
-  await window._authFns.signOut(window._auth);
+  window._userId = null;
+  _pinEntry = '';
+  _pinMode = 'enter';
+  const savedPin = localStorage.getItem('lt_pin');
+  document.getElementById('pin-title').textContent = 'Enter your 6-digit PIN';
+  document.getElementById('pin-subtitle').textContent = 'Same PIN on all your devices';
+  document.getElementById('pin-error').textContent = '';
+  pinUpdateDots();
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-shell').style.display = 'none';
 }
 
-// Allow pressing Enter on password field
-document.getElementById('auth-password')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') handleAuth();
-});
-
 // ---- INIT ----
+
 // App starts via onAuthStateChanged in the Firebase module above
 // currentTab exposed globally for Firestore listeners
 window.currentTab = currentTab;
@@ -1619,6 +1574,20 @@ switchTab = function(tab, el) {
   currentTab = tab;
   _origSwitchTab(tab, el);
 };
+
+// Check if PIN already set — show PIN screen regardless (security: always ask on fresh load)
+// But set the correct mode
+window.addEventListener('DOMContentLoaded', () => {
+  const savedPin = localStorage.getItem('lt_pin');
+  if (savedPin) {
+    document.getElementById('pin-title').textContent = 'Enter your PIN';
+    document.getElementById('pin-subtitle').textContent = 'Welcome back 💕';
+  } else {
+    document.getElementById('pin-title').textContent = 'Create your PIN';
+    document.getElementById('pin-subtitle').textContent = 'Set a 6-digit PIN to protect your memories';
+    _pinMode = 'set';
+  }
+});
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
