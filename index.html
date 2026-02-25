@@ -6,6 +6,7 @@
 <title>Love Today</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#e8526a">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Love Today">
@@ -864,7 +865,7 @@
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup }
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -874,13 +875,12 @@ import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, dele
 // (From Firebase Console → Project Settings → Your apps)
 // ============================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyAtmbfK7tKPTioxoQuC0kqq9Y0MGC95wPE",
-  authDomain: "love-today-231dc.firebaseapp.com",
-  projectId: "love-today-231dc",
-  storageBucket: "love-today-231dc.firebasestorage.app",
-  messagingSenderId: "576243792568",
-  appId: "1:576243792568:web:1e4acfb0c4795dc318524d",
-  measurementId: "G-YLPPCY6W8Z"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 // ============================================================
 
@@ -895,6 +895,22 @@ window._firestore = { doc, setDoc, getDoc, onSnapshot, collection, addDoc, delet
 window._authFns = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
 window._googleProvider = new GoogleAuthProvider();
 window._signInWithPopup = signInWithPopup;
+window._signInWithRedirect = signInWithRedirect;
+
+// Handle redirect result when page loads (mobile Google sign-in returns here)
+getRedirectResult(auth).then(result => {
+  if (result?.user) {
+    // User signed in via redirect — onAuthStateChanged will handle the rest
+    console.log('Redirect sign-in success:', result.user.displayName);
+  }
+}).catch(err => {
+  if (err.code !== 'auth/no-current-user') {
+    console.error('Redirect sign-in error:', err);
+    // Show error on auth screen if visible
+    const errEl = document.getElementById('auth-error');
+    if (errEl) { errEl.textContent = 'Google sign-in failed. Please try again.'; }
+  }
+});
 
 // Auth state listener
 onAuthStateChanged(auth, user => {
@@ -1461,14 +1477,25 @@ let _authMode = 'signin';
 
 async function signInWithGoogle() {
   const btn = document.getElementById('google-btn');
-  btn.disabled = true;
-  btn.style.opacity = '0.7';
-  btn.innerHTML = `<span style="font-size:15px">⏳</span> Signing in...`;
   const errEl = document.getElementById('auth-error');
   errEl.textContent = '';
+
+  // Detect mobile
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  btn.innerHTML = `<span style="font-size:15px">⏳</span> &nbsp;${isMobile ? 'Redirecting...' : 'Signing in...'}`;
+
   try {
-    await window._signInWithPopup(window._auth, window._googleProvider);
-    // onAuthStateChanged handles the rest
+    if (isMobile) {
+      // Mobile: use redirect (no popup blocking issues)
+      await window._signInWithRedirect(window._auth, window._googleProvider);
+      // Page will redirect to Google and come back — no code runs after this
+    } else {
+      // Desktop: use popup
+      await window._signInWithPopup(window._auth, window._googleProvider);
+    }
   } catch (err) {
     btn.disabled = false;
     btn.style.opacity = '1';
