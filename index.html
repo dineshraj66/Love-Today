@@ -908,10 +908,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Expose everything globally
 window._db = db;
-window._firestore = { doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, orderBy };
+window._doc = doc;
+window._setDoc = setDoc;
+window._onSnapshot = onSnapshot;
+window._collection = collection;
+window._addDoc = addDoc;
+window._deleteDoc = deleteDoc;
+window._updateDoc = updateDoc;
+window._query = query;
+window._orderBy = orderBy;
+
 window._firebaseReady = true;
-window.dispatchEvent(new Event('firebase-ready'));
+// Use setTimeout to ensure the regular <script> block has parsed first
+setTimeout(() => window.dispatchEvent(new Event('firebase-ready')), 0);
 </script>
 
 <script>
@@ -920,41 +931,40 @@ let data = { entries: [], likes: [], future: [], categories: ['Food','Gift','Mov
 let _unsubscribers = [];
 
 function initFirestoreSync() {
-  const { db, _firestore: fs, _userId: uid } = window;
-  if (!db || !uid) return;
-  const { onSnapshot, doc, collection, query, orderBy } = window._firestore;
-  const db2 = window._db;
+  const db = window._db;
+  const uid = window._userId;
+  if (!db || !uid) { console.error('initFirestoreSync: missing db or uid'); return; }
 
   // Unsubscribe previous listeners
   _unsubscribers.forEach(u => u());
   _unsubscribers = [];
 
-  // Settings doc (categories)
-  const settingsRef = doc(db2, 'users', uid, 'settings', 'main');
-  _unsubscribers.push(onSnapshot(settingsRef, snap => {
-    if (snap.exists()) {
-      data.categories = snap.data().categories || data.categories;
-    }
+  console.log('Syncing for user:', uid);
+
+  // Settings (categories)
+  const settingsRef = window._doc(db, 'users', uid, 'settings', 'main');
+  _unsubscribers.push(window._onSnapshot(settingsRef, snap => {
+    if (snap.exists()) data.categories = snap.data().categories || data.categories;
     refreshCurrentTab();
   }));
 
   // Entries
-  const entriesRef = collection(db2, 'users', uid, 'entries');
-  _unsubscribers.push(onSnapshot(query(entriesRef, orderBy('datetime', 'desc')), snap => {
+  const entriesRef = window._collection(db, 'users', uid, 'entries');
+  _unsubscribers.push(window._onSnapshot(window._query(entriesRef, window._orderBy('datetime', 'desc')), snap => {
     data.entries = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
     refreshCurrentTab();
   }));
 
   // Likes
-  const likesRef = collection(db2, 'users', uid, 'likes');
-  _unsubscribers.push(onSnapshot(query(likesRef, orderBy('datetime', 'desc')), snap => {
+  const likesRef = window._collection(db, 'users', uid, 'likes');
+  _unsubscribers.push(window._onSnapshot(window._query(likesRef, window._orderBy('datetime', 'desc')), snap => {
     data.likes = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
     if (window.currentTab === 'likes') renderLikes();
   }));
 
   // Future
-  const futureRef = collection(db2, 'users', uid, 'future');
-  _unsubscribers.push(onSnapshot(query(futureRef, orderBy('datetime', 'asc')), snap => {
+  const futureRef = window._collection(db, 'users', uid, 'future');
+  _unsubscribers.push(window._onSnapshot(window._query(futureRef, window._orderBy('datetime', 'asc')), snap => {
     data.future = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
     if (window.currentTab === 'future') renderFuture();
   }));
@@ -972,37 +982,41 @@ async function save() {
 }
 
 async function fbAdd(col, obj) {
-  const { addDoc, collection } = window._firestore;
-  const db2 = window._db;
+  const db = window._db;
   const uid = window._userId;
-  if (!db2 || !uid) return;
+  if (!db || !uid) { console.error('fbAdd: missing db or uid'); return; }
   delete obj._docId;
-  await addDoc(collection(db2, 'users', uid, col), obj);
+  try {
+    await window._addDoc(window._collection(db, 'users', uid, col), obj);
+  } catch(e) { console.error('fbAdd error:', e); showToast('Save failed. Check connection.'); }
 }
 
 async function fbUpdate(col, docId, obj) {
-  const { doc, updateDoc } = window._firestore;
-  const db2 = window._db;
+  const db = window._db;
   const uid = window._userId;
-  if (!db2 || !uid || !docId) return;
+  if (!db || !uid || !docId) { console.error('fbUpdate: missing params'); return; }
   delete obj._docId;
-  await updateDoc(doc(db2, 'users', uid, col, docId), obj);
+  try {
+    await window._updateDoc(window._doc(db, 'users', uid, col, docId), obj);
+  } catch(e) { console.error('fbUpdate error:', e); showToast('Update failed.'); }
 }
 
 async function fbDelete(col, docId) {
-  const { doc, deleteDoc } = window._firestore;
-  const db2 = window._db;
+  const db = window._db;
   const uid = window._userId;
-  if (!db2 || !uid || !docId) return;
-  await deleteDoc(doc(db2, 'users', uid, col, docId));
+  if (!db || !uid || !docId) { console.error('fbDelete: missing params'); return; }
+  try {
+    await window._deleteDoc(window._doc(db, 'users', uid, col, docId));
+  } catch(e) { console.error('fbDelete error:', e); showToast('Delete failed.'); }
 }
 
 async function fbSaveCategories(cats) {
-  const { doc, setDoc } = window._firestore;
-  const db2 = window._db;
+  const db = window._db;
   const uid = window._userId;
-  if (!db2 || !uid) return;
-  await setDoc(doc(db2, 'users', uid, 'settings', 'main'), { categories: cats }, { merge: true });
+  if (!db || !uid) return;
+  try {
+    await window._setDoc(window._doc(db, 'users', uid, 'settings', 'main'), { categories: cats }, { merge: true });
+  } catch(e) { console.error('fbSaveCategories error:', e); }
 }
 
 let currentTab = 'home';
