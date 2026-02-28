@@ -923,25 +923,28 @@ function initFirestoreSync() {
   _unsubscribers.push(base.collection('settings').doc('main').onSnapshot(snap => {
     if (snap.exists) data.categories = snap.data().categories || data.categories;
     refreshCurrentTab();
-  }));
+  }, err => showToast('Sync error: ' + err.message)));
 
-  // Entries
-  _unsubscribers.push(base.collection('entries').orderBy('datetime', 'desc').onSnapshot(snap => {
-    data.entries = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
+  // Entries — no orderBy to avoid index requirement, sort client-side
+  _unsubscribers.push(base.collection('entries').onSnapshot(snap => {
+    data.entries = snap.docs.map(d => ({ ...d.data(), _docId: d.id }))
+      .sort((a, b) => (b.datetime || '').localeCompare(a.datetime || ''));
     refreshCurrentTab();
-  }));
+  }, err => showToast('Entries error: ' + err.message)));
 
   // Likes
-  _unsubscribers.push(base.collection('likes').orderBy('datetime', 'desc').onSnapshot(snap => {
-    data.likes = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
+  _unsubscribers.push(base.collection('likes').onSnapshot(snap => {
+    data.likes = snap.docs.map(d => ({ ...d.data(), _docId: d.id }))
+      .sort((a, b) => (b.datetime || '').localeCompare(a.datetime || ''));
     if (window.currentTab === 'likes') renderLikes();
-  }));
+  }, err => showToast('Likes error: ' + err.message)));
 
   // Future
-  _unsubscribers.push(base.collection('future').orderBy('datetime', 'asc').onSnapshot(snap => {
-    data.future = snap.docs.map(d => ({ ...d.data(), _docId: d.id }));
+  _unsubscribers.push(base.collection('future').onSnapshot(snap => {
+    data.future = snap.docs.map(d => ({ ...d.data(), _docId: d.id }))
+      .sort((a, b) => (a.datetime || '').localeCompare(b.datetime || ''));
     if (window.currentTab === 'future') renderFuture();
-  }));
+  }, err => showToast('Future error: ' + err.message)));
 }
 
 function refreshCurrentTab() {
@@ -1518,8 +1521,15 @@ function pinSuccess(pin) {
   window._userId = userId;
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
+
+  if (!window._db) {
+    showToast('Firebase not loaded! Check internet connection.');
+    return;
+  }
+
   initFirestoreSync();
   renderHome();
+  showToast('Connected 💕');
 }
 
 function handleSignOut() {

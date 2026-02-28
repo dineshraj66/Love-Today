@@ -1,9 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // PIN-based: userId is derived from PIN client-side (btoa encoded)
-    // Data is isolated per PIN — only someone who knows the PIN can access it
-    match /users/{userId}/{document=**} {
+    match /{document=**} {
       allow read, write: if true;
     }
   }
