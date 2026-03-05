@@ -1086,6 +1086,9 @@ async function deleteEntry(id) {
   const e = data.entries.find(x => x.id === id);
   if (e) await fbDelete('entries', e._docId);
   showToast('Deleted');
+  const t = window.currentTab || 'home';
+  if (t === 'home') renderHome();
+  else if (t === 'history') renderHistory();
 }
 
 function editEntry(id) {
@@ -1112,6 +1115,11 @@ async function updateEntry() {
   await fbUpdate('entries', e._docId, updated);
   closeModal('edit-modal');
   showToast('Updated 💕');
+  // Refresh whatever tab is visible
+  const t = window.currentTab || 'home';
+  if (t === 'home') renderHome();
+  else if (t === 'history') renderHistory();
+  else if (t === 'stats') renderStats();
 }
 
 // LIKES
@@ -1243,13 +1251,64 @@ function entryCard(e, futureMode = false) {
   </div>`;
 }
 
+function getDaysSinceLastEntry() {
+  if (data.entries.length === 0) return null;
+  // Find the most recent entry across all history
+  const latest = data.entries.reduce((a, b) =>
+    new Date(a.datetime) > new Date(b.datetime) ? a : b
+  );
+  const lastDate = new Date(latest.datetime);
+  const today = new Date();
+  lastDate.setHours(0,0,0,0);
+  today.setHours(0,0,0,0);
+  return Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+}
+
+function loveBanner() {
+  const days = getDaysSinceLastEntry();
+  if (days === null) return ''; // no entries at all
+  if (days === 0) return ''; // has entry today — no nudge needed
+
+  let msg = '', emoji = '', color = '';
+  if (days === 1) {
+    msg = "Yesterday was the last time. Show some love today! 💕";
+    emoji = '💛'; color = '#f59e0b';
+  } else if (days <= 3) {
+    msg = `It's been ${days} days since your last memory.`;
+    emoji = '🧡'; color = '#f97316';
+  } else if (days <= 7) {
+    msg = `Been ${days} days since you showed your love 💕`;
+    emoji = '❤️'; color = '#e8526a';
+  } else {
+    msg = `It's been ${days} days! She deserves some love today 💝`;
+    emoji = '💔'; color = '#c73a52';
+  }
+
+  return `<div style="
+    background: white;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 4px 16px rgba(232,82,106,0.12);
+    border-left: 4px solid ${color};
+  ">
+    <span style="font-size:26px">${emoji}</span>
+    <div>
+      <div style="font-size:13px; font-weight:600; color:${color}; margin-bottom:2px;">Reminder</div>
+      <div style="font-size:14px; color: var(--text); line-height:1.4;">${msg}</div>
+    </div>
+  </div>`;
+}
+
 function renderHome() {
   const today = data.entries.filter(e => isToday(e.datetime));
   const sorted = [...today].sort((a,b) => new Date(b.datetime) - new Date(a.datetime));
   const el = document.getElementById('home-content');
+  const banner = loveBanner();
 
   if (sorted.length === 0) {
-    el.innerHTML = `<div class="empty">
+    el.innerHTML = banner + `<div class="empty">
       <div class="empty-icon">💕</div>
       <div class="empty-title">Start your love story today</div>
       <p>Tap <strong>+</strong> to add your first memory</p>
@@ -1257,7 +1316,8 @@ function renderHome() {
     return;
   }
 
-  el.innerHTML = `<div class="date-divider"><span>Today — ${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}</span></div>
+  el.innerHTML = banner +
+    `<div class="date-divider"><span>Today — ${new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}</span></div>
     ${sorted.map(e => entryCard(e)).join('')}`;
 }
 
